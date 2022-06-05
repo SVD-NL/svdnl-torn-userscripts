@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Show time left in hospital
-// @version      0.3
+// @version      0.31
 // @downloadURL  https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
 // @updateURL    https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
 // @description  Add time left in hospital to faction page
@@ -30,16 +30,21 @@
                     });
                     const infoElement = $(this);
                     setInterval(function() { hospTimer(infoElement, countdownDate); }, 1000);
-                    $(this).parents().find('div#react-root').each(function() {
-                        $(this).find('ul.f-war-list.war-new').each(function() {
-                            $(this).find(`div[id^=${userId}]`).each(function() {
-                                $(this).parentsUntil('ul').find('div.status').each(function() {
-                                    const warElement = $(this)
-                                    setInterval(function() { hospTimer(warElement, countdownDate); }, 1000);
+                    const checkWarInterval = setInterval(function() {
+                        infoElement.parents().find('div#react-root').each(function() {
+                            $(this).find('ul.f-war-list.war-new').each(function() {
+                                $(this).find(`div[id^=${userId}]`).each(function() {
+                                    if($(this)) {
+                                        clearInterval(checkWarInterval);
+                                    }
+                                    $(this).parentsUntil('ul').find('div.status').each(function() {
+                                        const warElement = $(this)
+                                        setInterval(function() { hospTimer(warElement, countdownDate); }, 1000);
+                                    });
                                 });
                             });
                         });
-                    });
+                    }, 2500);
                 });
             }
         });
