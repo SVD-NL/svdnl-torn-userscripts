@@ -1,14 +1,19 @@
 // ==UserScript==
 // @name         Show time left in hospital
-// @version      0.4
+// @version      0.41
 // @downloadURL  https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
 // @updateURL    https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
-// @description  Add time left in hospital to faction page
+// @description  Change status to time left in hospital on faction pages. Does not use the Torn API.
 // @author       SVD_NL [2363978]
 // @run-at       document-end
 // @match        https://www.torn.com/factions.php?step=*
 // @grant        none
 // ==/UserScript==
+
+/*CAVEATS:
+    1. It will only be able to add the timer to war pages for members of the faction you are currently on.
+    2. It will not detect players medding out on the info pages. It will on war pages (if the underlying page properly refreshes).
+*/
 
 (function() {
     const addHospTime = function() {
@@ -59,8 +64,13 @@
         const timeLeft = countdownDate.getTime() - now.getTime();
         if(timeLeft <= 0) {
             element.text('Okay');
-            element.removeClass('t-red');
-            element.addClass('t-green');
+            if(element.hasClass('t-red')) {
+                element.removeClass('t-red');
+                element.addClass('t-green');
+            } else if (element.hasClass('not-ok')) {
+                element.removeClass('not-ok');
+                element.addClass('ok');
+            }
             return;
         }
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
