@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Show time left in hospital
-// @version      0.2
+// @version      0.3
 // @downloadURL  https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
 // @updateURL    https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
 // @description  Add time left in hospital to faction page
@@ -13,7 +13,11 @@
 (function() {
     const addHospTime = function() {
         $('ul.table-body').find('li.table-row').each(function() {
+            if($(this)) {
+                clearInterval(mainInterval);
+            }
             let secondsLeft = '';
+            let userId = '';
             $(this).find('li[title^="<b>Hospital"]').each(function() {
                 secondsLeft = $(this).attr('title').match(/(?<=data-time=')\d*/);
             });
@@ -21,16 +25,28 @@
                 const countdownDate = new Date;
                 countdownDate.setSeconds(countdownDate.getSeconds() + parseInt(secondsLeft[0]));
                 $(this).find('div.table-cell.status > span').each(function() {
-                    const element = $(this)
-                    setInterval(function() { hospTimer(element, countdownDate); }, 1000);
+                    $(this).parent().parent().find('div[class^="userInfoBox"]').each(function() {
+                        userId = $(this).children().first().attr('id').match(/^\d*/)[0];
+                    });
+                    const infoElement = $(this);
+                    setInterval(function() { hospTimer(infoElement, countdownDate); }, 1000);
+                    $(this).parents().find('div#react-root').each(function() {
+                        $(this).find('ul.f-war-list.war-new').each(function() {
+                            $(this).find(`div[id^=${userId}]`).each(function() {
+                                $(this).parentsUntil('ul').find('div.status').each(function() {
+                                    const warElement = $(this)
+                                    setInterval(function() { hospTimer(warElement, countdownDate); }, 1000);
+                                });
+                            });
+                        });
+                    });
                 });
             }
         });
     }
-    setTimeout(addHospTime, 3000)
+    const mainInterval = setInterval(addHospTime, 1000)
 
     const hospTimer = function(element,countdownDate) {
-        console.log(element);
         const now = new Date();
         const timeLeft = countdownDate.getTime() - now.getTime();
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
@@ -41,8 +57,8 @@
     }
 
     const zeroPad = function(num, size) {
-    num = num.toString();
-    while (num.length < size) num = "0" + num;
-    return num;
-}
+        num = num.toString();
+        while (num.length < size) num = "0" + num;
+        return num;
+    }
 })();
