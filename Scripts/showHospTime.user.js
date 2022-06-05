@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Show time left in hospital
-// @version      0.31
+// @version      0.4
 // @downloadURL  https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
 // @updateURL    https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
 // @description  Add time left in hospital to faction page
@@ -52,8 +52,17 @@
     const mainInterval = setInterval(addHospTime, 1000)
 
     const hospTimer = function(element,countdownDate) {
+        if(element.text() === 'Okay'){
+            return;
+        }
         const now = new Date();
         const timeLeft = countdownDate.getTime() - now.getTime();
+        if(timeLeft <= 0) {
+            element.text('Okay');
+            element.removeClass('t-red');
+            element.addClass('t-green');
+            return;
+        }
         const hours = Math.floor(timeLeft / (1000 * 60 * 60));
         const minutes = zeroPad(Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60)),2);
         const seconds = zeroPad(Math.floor((timeLeft % (1000 * 60)) / 1000),2);
