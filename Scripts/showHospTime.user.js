@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Show time left in hospital
 // @version      0.1
-// @downloadURL  https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/showHospTime.user.js
-// @updateURL    https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/showHospTime.user.js
+// @downloadURL  https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
+// @updateURL    https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
 // @description  Add time left in hospital to faction page
 // @author       SVD_NL [2363978]
 // @run-at       document-end
