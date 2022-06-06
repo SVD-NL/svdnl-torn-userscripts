@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Show time left in hospital
-// @version      0.41
+// @version      1.0
 // @downloadURL  https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
 // @updateURL    https://github.com/SVD-NL/svdnl-torn-userscripts/raw/main/Scripts/showHospTime.user.js
 // @description  Change status to time left in hospital on faction pages. Does not use the Torn API.
@@ -17,46 +17,64 @@
 
 (function() {
     const addHospTime = function() {
-        $('ul.table-body').find('li.table-row').each(function() {
-            if($(this)) {
-                clearInterval(mainInterval);
-            }
-            let secondsLeft = '';
-            let userId = '';
+        const hospedUsers = [];
+        const memberRows = $('ul.table-body').children('li.table-row');
+        if(memberRows.length === 0) {
+            return;
+        }
+        clearInterval(mainInterval);
+        memberRows.each(function() {
+            let userId, countdownDate, element, secondsLeft;
             $(this).find('li[title^="<b>Hospital"]').each(function() {
                 secondsLeft = $(this).attr('title').match(/(?<=data-time=')\d*/);
             });
             if (typeof secondsLeft === 'object') {
-                const countdownDate = new Date;
+                countdownDate = new Date;
                 countdownDate.setSeconds(countdownDate.getSeconds() + parseInt(secondsLeft[0]));
                 $(this).find('div.table-cell.status > span').each(function() {
                     $(this).parent().parent().find('div[class^="userInfoBox"]').each(function() {
                         userId = $(this).children().first().attr('id').match(/^\d*/)[0];
                     });
-                    const infoElement = $(this);
-                    setInterval(function() { hospTimer(infoElement, countdownDate); }, 1000);
-                    const checkWarInterval = setInterval(function() {
-                        infoElement.parents().find('div#react-root').each(function() {
-                            $(this).find('ul.f-war-list.war-new').each(function() {
-                                $(this).find(`div[id^=${userId}]`).each(function() {
-                                    if($(this)) {
-                                        clearInterval(checkWarInterval);
-                                    }
-                                    $(this).parentsUntil('ul').find('div.status').each(function() {
-                                        const warElement = $(this)
-                                        setInterval(function() { hospTimer(warElement, countdownDate); }, 1000);
-                                    });
-                                });
-                            });
-                        });
-                    }, 2500);
+                    element = $(this);
+                    hospedUsers.push({
+                        userId: userId,
+                        countdownDate: countdownDate,
+                        element: element,
+                    });
                 });
             }
         });
+        for (let i = 0; i < hospedUsers.length; i++) {
+            setInterval(function() { hospTimer(hospedUsers[i].element, hospedUsers[i].countdownDate); }, 1000);
+        }
+        if (hospedUsers.length > 0) {
+            const warList = $('ul.f-war-list.war-new');
+            const noActiveWar = warList.find('div[class^=rankBox]').length === 0;
+            if(noActiveWar) {
+                console.log('no war')
+                return;
+            }
+            const warMembersInterval = setInterval(function(){
+                const warElement = warList.children('li.descriptions');
+                if (warElement.length === 0) {
+                    return;
+                }
+                clearInterval(warMembersInterval);
+                for (let i = 0; i < hospedUsers.length; i++) {
+                    warElement.find(`div[id^=${hospedUsers[i].userId}]`).each(function() {
+                        $(this).parentsUntil('ul').find('div.status').each(function() {
+                            const element = $(this)
+                            setInterval(function() { hospTimer(element, hospedUsers[i].countdownDate); }, 1000);
+                        });
+                    });
+                }
+            }, 1000);
+        }
     }
-    const mainInterval = setInterval(addHospTime, 1000)
+    //Check the page for loaded member list every second
+    const mainInterval = setInterval(addHospTime, 1000);
 
-    const hospTimer = function(element,countdownDate) {
+    const hospTimer = function(element, countdownDate) {
         if(element.text() === 'Okay'){
             return;
         }
@@ -85,4 +103,5 @@
         while (num.length < size) num = "0" + num;
         return num;
     }
+
 })();
